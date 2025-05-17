@@ -1,11 +1,10 @@
-import profilePic from './assets/banner.png'
 
-function Card() {
+function Card(props) {
     return (
         <div className="card">
-            <img className="card-image" src={profilePic} alt="profile picture"></img>
-            <h2 className="card-title">Paras Nijhawan</h2>
-            <p className="card-text">I'm learning react</p>
+            <img className="card-image" src={props.profilePic} alt="profile picture"></img>
+            <h2 className="card-title">{props.name}</h2>
+            <p className="card-text">{props.text}</p>
         </div>
     );
 
