@@ -1,0 +1,96 @@
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: #242424;
+    min-height: 100vh;
+    position: relative;
+}
+
+.bubbles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.bubble {
+    position: absolute;
+    bottom: -160px;
+    /* was -100px, now starts lower so bubbles don't peak up */
+    background: rgba(138, 138, 138, 0.3);
+    border-radius: 50%;
+    opacity: 0.7;
+    animation: rise 10s linear infinite;
+    box-shadow: 0 0 32px 8px rgba(180, 180, 180, 0.25),
+        /* outer glow */
+        0 0 0 2px rgba(200, 200, 200, 0.18);
+    /* soft border */
+}
+
+.bubble:nth-child(1) {
+    left: 10vw;
+    width: 90px;
+    height: 90px;
+    animation-duration: 14s;
+    animation-delay: 0s;
+}
+
+.bubble:nth-child(2) {
+    left: 30vw;
+    width: 70px;
+    height: 70px;
+    animation-duration: 12s;
+    animation-delay: 2s;
+}
+
+.bubble:nth-child(3) {
+    left: 50vw;
+    width: 120px;
+    height: 120px;
+    animation-duration: 16s;
+    animation-delay: 4s;
+}
+
+.bubble:nth-child(4) {
+    left: 70vw;
+    width: 90px;
+    height: 90px;
+    animation-duration: 13s;
+    animation-delay: 1s;
+}
+
+.bubble:nth-child(5) {
+    left: 85vw;
+    width: 60px;
+    height: 60px;
+    animation-duration: 11s;
+    animation-delay: 3s;
+}
+
+@keyframes rise {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 0.7;
+    }
+
+    80% {
+        opacity: 0.5;
+    }
+
+    100% {
+        transform: translateY(-110vh) scale(1.2);
+        opacity: 0;
+    }
+}
+
+/* Example: Give navbar a higher z-index if needed */
+nav,
+.navbar {
+    position: relative;
+    z-index: 1;
+}
