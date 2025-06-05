@@ -3,7 +3,13 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import OpenAI from "openai";
+import fs from "fs";
+import path from "path";
 
+
+// Read the workouts.csv file once at startup
+const csvPath = path.resolve("src/assets/workouts.csv");
+const workoutsCSV = fs.readFileSync(csvPath, "utf-8");
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
@@ -17,7 +23,12 @@ app.use(cors());
 app.post("/api/chat", async (req, res) => {
     const { prompt } = req.body;
 
+    // Prepend the CSV as context for the assistant
     const messages = [
+        {
+            role: "system",
+            content: `Here is the user's workout log in CSV format:\n${workoutsCSV}\nUse this as context for any questions.`
+        },
         { role: "user", content: prompt }
     ];
 
