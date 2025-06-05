@@ -35,6 +35,8 @@ function GPT() {
                 <div
                     style={{
                         minHeight: "80px",
+                        maxHeight: "250px", // set max height
+                        overflowY: "auto",  // make scrollable
                         background: "rgba(255, 255, 255, 0)", // transparent background
                         color: "#e0e0e0",
                         borderRadius: "3px",

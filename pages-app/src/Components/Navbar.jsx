@@ -9,7 +9,9 @@ function Navbar() {
             <span style={{ display: "inline-block", width: "0.5em" }}></span>
             <Link to="/About"><button>About</button></Link>
             <span style={{ display: "inline-block", width: "0.5em" }}></span>
-            <Link to="/ChatBot"><button>ChatGPT</button></Link>
+            <Link to="/Workouts"><button>Workouts</button></Link>
+            <span style={{ display: "inline-block", width: "0.5em" }}></span>
+            <Link to="/ChatBot"><button>ChatBot</button></Link>
         </>
     )
 }
