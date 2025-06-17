@@ -1,27 +1,8 @@
-export const create_empty_workout_card_schema = {
+export const create_full_workout_schema = {
     type: "function",
     function: {
-        name: "create_empty_workout_card_in_mongodb",
-        description: "Create a new workout card with a date and no exercises in MongoDB.",
-        parameters: {
-            type: "object",
-            properties: {
-                date: {
-                    type: "string",
-                    description: "The date of the workout in YYYY-MM-DD format. If not provided, uses today's date."
-                }
-            },
-            required: []
-        }
-    }
-};
-
-
-export const add_exercise_to_workout_schema = {
-    type: "function",
-    function: {
-        name: "add_exercise_to_workout",
-        description: "Add an exercise to a workout on a specific date in MongoDB. If the workout does not exist, it will be created.",
+        name: "create_full_workout",
+        description: "Add multiple exercises to a workout on a specific date in MongoDB. If the workout does not exist, it will be created.",
         parameters: {
             type: "object",
             properties: {
@@ -29,24 +10,28 @@ export const add_exercise_to_workout_schema = {
                     type: "string",
                     description: "The date of the workout in YYYY-MM-DD format."
                 },
-                exercise_name: {
-                    type: "string",
-                    description: "The name/type of the exercise."
+                exercise_names: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "A list of exercise names/types."
                 },
-                sets: {
-                    type: "integer",
-                    description: "The number of sets for the exercise."
+                sets_list: {
+                    type: "array",
+                    items: { type: "integer" },
+                    description: "A list of set counts for each exercise."
                 },
-                reps: {
-                    type: "integer",
-                    description: "The number of reps per set."
+                reps_list: {
+                    type: "array",
+                    items: { type: "integer" },
+                    description: "A list of rep counts for each exercise."
                 },
-                weight: {
-                    type: "integer",
-                    description: "The weight used for the exercise."
+                weights_list: {
+                    type: "array",
+                    items: { type: "integer" },
+                    description: "A list of weights for each exercise."
                 }
             },
-            required: ["date", "exercise_name", "sets", "reps", "weight"]
+            required: ["date", "exercise_names", "sets_list", "reps_list", "weights_list"]
         }
     }
 };

@@ -6,8 +6,7 @@ import OpenAI from "openai";
 import fs from "fs";
 import path from "path";
 import mongoose from "mongoose";
-import { create_empty_workout_card_schema, add_exercise_to_workout_schema } from "./src/tools/schema.js";
-import { spawnSync } from "child_process";
+import { create_full_workout_schema } from "./src/tools/schema.js";
 
 
 // Read the workouts.csv file once at startup
@@ -52,99 +51,66 @@ app.post("/api/chat", async (req, res) => {
         { role: "user", content: prompt }
     ];
 
-    const tools = [
-        create_empty_workout_card_schema,
-        add_exercise_to_workout_schema
-    ];
+    // Only use the new schema
+    const tools = [create_full_workout_schema];
 
     try {
-        let keepGoing = true;
-        let lastResponse = null;
+        const response = await openai.chat.completions.create({
+            model: "gpt-4-1106-preview",
+            messages,
+            max_tokens: 512,
+            temperature: 0,
+            tools,
+            tool_choice: "auto"
+        });
 
-        while (keepGoing) {
-            const response = await openai.chat.completions.create({
-                model: "gpt-4-1106-preview",
-                messages,
-                max_tokens: 512,
-                temperature: 0,
-                tools
+        const choice = response.choices[0];
+        let lastResponse = choice.message;
+
+        if (choice.finish_reason === "tool_calls" && choice.message.tool_calls) {
+            // Only process the first tool call
+            const toolCall = choice.message.tool_calls[0];
+            let output = "";
+            if (toolCall.function.name === "create_full_workout") {
+                const parsed = JSON.parse(toolCall.function.arguments);
+                const exercises = [];
+                for (let i = 0; i < parsed.exercise_names.length; i++) {
+                    exercises.push({
+                        name: parsed.exercise_names[i],
+                        sets: String(parsed.sets_list[i]),
+                        reps: String(parsed.reps_list[i]),
+                        weight: String(parsed.weights_list[i])
+                    });
+                }
+                // Upsert workout in MongoDB
+                const workout = await Workout.findOneAndUpdate(
+                    { date: parsed.date },
+                    { $push: { exercises: { $each: exercises } } },
+                    { upsert: true, new: true }
+                );
+                output = JSON.stringify(workout);
+            }
+            // Add the tool result to the conversation
+            messages.push({
+                role: "assistant",
+                content: null,
+                tool_calls: [toolCall]
+            });
+            messages.push({
+                role: "tool",
+                tool_call_id: toolCall.id,
+                name: toolCall.function.name,
+                content: output
             });
 
-            const choice = response.choices[0];
-            lastResponse = choice.message;
-
-            if (choice.finish_reason === "tool_calls" && choice.message.tool_calls) {
-                // Add the assistant's tool call message to the conversation
-                messages.push({
-                    role: "assistant",
-                    content: null,
-                    tool_calls: choice.message.tool_calls
-                });
-
-                // For each tool call, run the function and add the result as a tool message
-                for (const toolCall of choice.message.tool_calls) {
-                    let output = "";
-                    if (toolCall.function.name === "create_empty_workout_card_in_mongodb") {
-                        const args = [];
-                        if (toolCall.function.arguments) {
-                            const parsed = JSON.parse(toolCall.function.arguments);
-                            if (parsed.date) args.push(parsed.date);
-                        }
-                        const pyResult = spawnSync(
-                            "python3",
-                            ["./src/tools/create_workouts.py", "create_empty_workout_card_in_mongodb", ...args],
-                            { encoding: "utf-8" }
-                        );
-                        if (pyResult.error) throw pyResult.error;
-                        output = pyResult.stdout.trim();
-                    }
-                    if (toolCall.function.name === "add_exercise_to_workout") {
-                        const parsed = JSON.parse(toolCall.function.arguments);
-                        const args = [
-                            parsed.date,
-                            parsed.exercise_name,
-                            parsed.sets,
-                            parsed.reps,
-                            parsed.weight
-                        ];
-                        const pyResult = spawnSync(
-                            "python3",
-                            ["./src/tools/create_workouts.py", "add_exercise_to_workout", ...args],
-                            { encoding: "utf-8" }
-                        );
-                        if (pyResult.error) throw pyResult.error;
-                        output = pyResult.stdout.trim();
-                    }
-                    // Add the tool result to the conversation
-                    messages.push({
-                        role: "tool",
-                        tool_call_id: toolCall.id,
-                        name: toolCall.function.name,
-                        content: output
-                    });
-                }
-            } else {
-                // No more tool calls, get a final message from OpenAI
-                if (!lastResponse.content || lastResponse.content.trim() === "") {
-                    // If the last response is empty, ask OpenAI for a summary message
-                    messages.push({
-                        role: "assistant",
-                        content: null
-                    });
-                    messages.push({
-                        role: "user",
-                        content: "Please summarize what you just did for me."
-                    });
-                    const summaryResponse = await openai.chat.completions.create({
-                        model: "gpt-4-1106-preview",
-                        messages,
-                        max_tokens: 256,
-                        temperature: 0
-                    });
-                    lastResponse = summaryResponse.choices[0].message;
-                }
-                keepGoing = false;
-            }
+            // Get a final message from OpenAI after the tool call
+            const summaryResponse = await openai.chat.completions.create({
+                model: "gpt-4-1106-preview",
+                messages,
+                max_tokens: 256,
+                temperature: 0
+            });
+            lastResponse = summaryResponse.choices[0].message;
         }
 
         res.json(lastResponse);
