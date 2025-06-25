@@ -56,15 +56,15 @@ function Workouts() {
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({ date: updatedDate, exercises: updatedExercises }),
                             })
-                            .then(res => res.json())
-                            .then(updatedWorkout => {
-                                setWorkouts(workouts =>
-                                    workouts.map(card =>
-                                        card._id === w._id ? updatedWorkout : card
-                                    )
-                                );
-                                setEditingIdx(null);
-                            });
+                                .then(res => res.json())
+                                .then(updatedWorkout => {
+                                    setWorkouts(workouts =>
+                                        workouts.map(card =>
+                                            card._id === w._id ? updatedWorkout : card
+                                        )
+                                    );
+                                    setEditingIdx(null);
+                                });
                         }}
                     />
                 ))}
@@ -72,6 +72,13 @@ function Workouts() {
             </div>
             <div style={{ marginTop: "1.5em" }}>
                 <Navbar />
+            </div>
+            <div className="bubbles">
+                <div className="bubble"></div>
+                <div className="bubble"></div>
+                <div className="bubble"></div>
+                <div className="bubble"></div>
+                <div className="bubble"></div>
             </div>
         </>
     );

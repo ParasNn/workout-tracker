@@ -4,7 +4,7 @@ import Navbar from "../Components/Navbar";
 function Home() {
     return (
         <>
-            <h1>This is the Home Page</h1>
+            <h1>Start Tracking Your Workouts!</h1>
             <Navbar />
             <div className="bubbles">
                 <div className="bubble"></div>
